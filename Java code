@@ -1,0 +1,160 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+
+class Visitor {
+    private int id;
+    private String name;
+    private String purpose;
+    private boolean checkedIn;
+
+    public Visitor(int id, String name, String purpose) {
+        this.id = id;
+        this.name = name;
+        this.purpose = purpose;
+        this.checkedIn = true; // Assume visitors check in upon registration
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public boolean isCheckedIn() {
+        return checkedIn;
+    }
+
+    public void checkOut() {
+        this.checkedIn = false;
+    }
+
+    @Override
+    public String toString() {
+        return "ID: " + id + ", Name: " + name + ", Purpose: " + purpose +
+               ", Status: " + (checkedIn ? "Checked In" : "Checked Out");
+    }
+}
+
+public class VisitorManagementSystem {
+    private ArrayList<Visitor> visitors = new ArrayList<>();
+    private int nextId = 1;
+
+    public VisitorManagementSystem() {
+        JFrame frame = new JFrame("Visitor Management System");
+        frame.setSize(500, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        // Panel for buttons
+        JPanel buttonPanel = new JPanel();
+        JButton registerButton = new JButton("Register Visitor");
+        JButton viewButton = new JButton("View Visitors");
+        JButton checkOutButton = new JButton("Check Out Visitor");
+        JButton searchButton = new JButton("Search Visitor");
+        buttonPanel.add(registerButton);
+        buttonPanel.add(viewButton);
+        buttonPanel.add(checkOutButton);
+        buttonPanel.add(searchButton);
+
+        // Text area for output
+        JTextArea outputArea = new JTextArea();
+        outputArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+
+        frame.add(buttonPanel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        // Register Visitor
+        registerButton.addActionListener(e -> {
+            JTextField nameField = new JTextField();
+            JTextField purposeField = new JTextField();
+            Object[] message = {
+                "Name:", nameField,
+                "Purpose:", purposeField
+            };
+            int option = JOptionPane.showConfirmDialog(frame, message, "Register Visitor", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                String name = nameField.getText();
+                String purpose = purposeField.getText();
+                if (!name.isEmpty() && !purpose.isEmpty()) {
+                    Visitor visitor = new Visitor(nextId++, name, purpose);
+                    visitors.add(visitor);
+                    outputArea.append("Visitor registered successfully: " + visitor + "\n");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // View Visitors
+        viewButton.addActionListener(e -> {
+            if (visitors.isEmpty()) {
+                outputArea.append("No visitors found.\n");
+            } else {
+                outputArea.append("Visitors:\n");
+                for (Visitor visitor : visitors) {
+                    outputArea.append(visitor + "\n");
+                }
+            }
+        });
+
+        // Check Out Visitor
+        checkOutButton.addActionListener(e -> {
+            String idString = JOptionPane.showInputDialog(frame, "Enter Visitor ID to check out:");
+            if (idString != null && !idString.isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idString);
+                    boolean found = false;
+                    for (Visitor visitor : visitors) {
+                        if (visitor.getId() == id) {
+                            found = true;
+                            if (visitor.isCheckedIn()) {
+                                visitor.checkOut();
+                                outputArea.append("Visitor checked out: " + visitor.getName() + "\n");
+                            } else {
+                                outputArea.append("Visitor is already checked out.\n");
+                            }
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        outputArea.append("Visitor not found with ID: " + id + "\n");
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid ID format.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Search Visitor
+        searchButton.addActionListener(e -> {
+            String name = JOptionPane.showInputDialog(frame, "Enter Visitor Name to search:");
+            if (name != null && !name.isEmpty()) {
+                boolean found = false;
+                for (Visitor visitor : visitors) {
+                    if (visitor.getName().equalsIgnoreCase(name)) {
+                        outputArea.append(visitor + "\n");
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    outputArea.append("No visitor found with the name: " + name + "\n");
+                }
+            }
+        });
+
+        frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new VisitorManagementSystem();
+    }
+}
